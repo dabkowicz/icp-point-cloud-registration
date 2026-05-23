@@ -80,6 +80,7 @@ def bestFitTransform(source, target):
         return rotation_matrix, translation_vector
 
 
+        translation_vector = centroid_target - rotation_matrix @ centroid_source
 
 def runICP(source, target, max_iterations=50, tolerance=1e-6):
 
@@ -92,6 +93,8 @@ def runICP(source, target, max_iterations=50, tolerance=1e-6):
 
         matched_target = target[indices]   #target cloud
 
+    transformed_source = source.copy()
+    errors = []   #creation of error list
 
         #calculation of the best rotation and shift
         rotation_matrix, translation_vector = bestFitTransform(
@@ -99,6 +102,7 @@ def runICP(source, target, max_iterations=50, tolerance=1e-6):
             matched_target
         )
 
+        matched_target = target[indices]   #target cloud
 
         #cloud location update
         transformed_source = transformPointCloud(
@@ -116,3 +120,12 @@ def runICP(source, target, max_iterations=50, tolerance=1e-6):
             break
 
     return transformed_source, errors
+
+#mean error as the average distance between each source point and its closest target point
+        mean_error = np.mean(distances)
+        errors.append(mean_error)
+
+        if iteration > 0 and abs(errors[-2] - errors[-1]) < tolerance:
+            break
+
+#def paintClouds(source, target, title="point cloud visualization"):
