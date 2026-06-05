@@ -27,7 +27,6 @@ def generateSpherePoints(n_points=1000, radius=1.0, noise=0.0):
 
     return points
 
-import numpy as np
 
 
 def generateEllipsoidPoints(n_points, center, radii, noise=0.0):

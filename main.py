@@ -33,6 +33,44 @@ button_font = ("Segoe UI", 12, "bold")
 small_font = ("Segoe UI", 9)
 
 
+def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=25, **kwargs):
+    """
+    creates a rounded rectangle on tkinter canvas
+
+    parameters:
+    canvas: tkinter canvas object
+    x1: left coordinate
+    y1: top coordinate
+    x2: right coordinate
+    y2: bottom coordinate
+    radius: corner radius
+
+    returns:
+    rounded rectangle object id
+    """
+
+    points = [
+        x1 + radius, y1,
+        x2 - radius, y1,
+        x2, y1,
+        x2, y1 + radius,
+        x2, y2 - radius,
+        x2, y2,
+        x2 - radius, y2,
+        x1 + radius, y2,
+        x1, y2,
+        x1, y2 - radius,
+        x1, y1 + radius,
+        x1, y1
+    ]
+
+    return canvas.create_polygon(
+        points,
+        smooth=True,
+        **kwargs
+    )
+
+
 def choose_project_options():
     """
     opens a styled window where the user chooses visualization mode and shape
@@ -49,6 +87,227 @@ def choose_project_options():
         "visualization": "matplotlib",
         "shape": "rubber duck"
     }
+
+    def start_project():
+        selected_options["visualization"] = visualization_var.get()
+        selected_options["shape"] = shape_var.get()
+        window.destroy()
+
+    window = tk.Tk()
+    window.title("icp point cloud registration")
+
+    window_width = 600
+    window_height = 430
+
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    x = int((screen_width / 2) - (window_width / 2))
+    y = int((screen_height / 2) - (window_height / 2))
+
+    window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    window.resizable(False, False)
+    window.configure(bg=blue_depths)
+
+    canvas = tk.Canvas(
+        window,
+        width=window_width,
+        height=window_height,
+        bg=blue_depths,
+        highlightthickness=0
+    )
+
+    canvas.pack(fill="both", expand=True)
+
+    create_rounded_rectangle(
+        canvas,
+        55,
+        45,
+        545,
+        385,
+        radius=32,
+        fill=cultured_pearl,
+        outline=catacomb_walls,
+        width=2
+    )
+
+    content = tk.Frame(
+        window,
+        bg=cultured_pearl
+    )
+
+    canvas.create_window(
+        300,
+        215,
+        window=content,
+        width=455,
+        height=300
+    )
+
+    title = tk.Label(
+        content,
+        text="icp point cloud registration",
+        font=title_font,
+        bg=cultured_pearl,
+        fg=dark_ruby
+    )
+
+    subtitle = tk.Label(
+        content,
+        text="choose visualization mode and shape",
+        font=subtitle_font,
+        bg=cultured_pearl,
+        fg=meteorite
+    )
+
+    title.pack(pady=(18, 3))
+    subtitle.pack(pady=(0, 24))
+
+    style = ttk.Style()
+    style.theme_use("clam")
+
+    style.configure(
+        "Custom.TCombobox",
+        fieldbackground="#ebe7e2",
+        background="#ebe7e2",
+        foreground=meteorite,
+        arrowcolor=dark_ruby,
+        bordercolor=catacomb_walls,
+        lightcolor=catacomb_walls,
+        darkcolor=catacomb_walls,
+        padding=8
+    )
+
+    style.map(
+        "Custom.TCombobox",
+        fieldbackground=[("readonly", "#ebe7e2")],
+        selectbackground=[("readonly", "#ebe7e2")],
+        selectforeground=[("readonly", meteorite)]
+    )
+
+    form = tk.Frame(
+        content,
+        bg=cultured_pearl
+    )
+
+    form.pack()
+
+    visualization_var = tk.StringVar(value="matplotlib")
+    shape_var = tk.StringVar(value="rubber duck")
+
+    visualization_block = tk.Frame(
+        form,
+        bg=cultured_pearl
+    )
+
+    shape_block = tk.Frame(
+        form,
+        bg=cultured_pearl
+    )
+
+    visualization_block.grid(
+        row=0,
+        column=0,
+        padx=18
+    )
+
+    shape_block.grid(
+        row=0,
+        column=1,
+        padx=18
+    )
+
+    visualization_label = tk.Label(
+        visualization_block,
+        text="visualization mode",
+        font=label_font,
+        bg=cultured_pearl,
+        fg=blue_depths,
+        anchor="center",
+        justify="center"
+    )
+
+    visualization_label.pack(pady=(0, 7))
+
+    visualization_box = ttk.Combobox(
+        visualization_block,
+        textvariable=visualization_var,
+        values=["matplotlib", "open3d"],
+        state="readonly",
+        font=("Segoe UI", 10),
+        width=21,
+        justify="center",
+        style="Custom.TCombobox"
+    )
+
+    visualization_box.pack()
+
+    shape_label = tk.Label(
+        shape_block,
+        text="shape",
+        font=label_font,
+        bg=cultured_pearl,
+        fg=dark_ruby,
+        anchor="center",
+        justify="center"
+    )
+
+    shape_label.pack(pady=(0, 7))
+
+    shape_box = ttk.Combobox(
+        shape_block,
+        textvariable=shape_var,
+        values=["cube", "sphere", "rubber duck"],
+        state="readonly",
+        font=("Segoe UI", 10),
+        width=21,
+        justify="center",
+        style="Custom.TCombobox"
+    )
+
+    shape_box.pack()
+
+    description = tk.Label(
+        content,
+        text="the program creates a transformed source cloud\nand aligns it with the target cloud using icp",
+        font=small_font,
+        bg=cultured_pearl,
+        fg=meteorite,
+        justify="center"
+    )
+
+    description.pack(pady=(24, 18))
+
+    start_button = tk.Button(
+        content,
+        text="start visualization",
+        font=button_font,
+        width=26,
+        height=2,
+        bg=dark_ruby,
+        fg=cultured_pearl,
+        activebackground=meteorite,
+        activeforeground=cultured_pearl,
+        bd=0,
+        cursor="hand2",
+        command=start_project
+    )
+
+    start_button.pack()
+
+    footer = tk.Label(
+        content,
+        text="source cloud vs target cloud alignment",
+        font=small_font,
+        bg=cultured_pearl,
+        fg="#77706b"
+    )
+
+    footer.pack(pady=(15, 0))
+
+    window.mainloop()
+
+    return selected_options["visualization"], selected_options["shape"]
 
     def start_project():
         selected_options["visualization"] = visualization_var.get()
