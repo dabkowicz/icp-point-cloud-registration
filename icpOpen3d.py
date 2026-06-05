@@ -33,3 +33,4 @@ def run_open3d_icp(source_np, target_np, max_distance=0.5, max_iteration=50, tol
     transformed_source_np = np.asarray(source.points)
 
     return transformed_source_np, result.fitness, result.inlier_rmse
+
