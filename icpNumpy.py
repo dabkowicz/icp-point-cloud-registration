@@ -54,3 +54,7 @@ distance between matching points
 """
 
 
+def transform_point_cloud(points, rotation_matrix, translation_vector):
+    return points @ rotation_matrix.T + translation_vector
+
+#^ applies rotation and translation to a  point cloud
