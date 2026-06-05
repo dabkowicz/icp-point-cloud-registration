@@ -52,8 +52,8 @@ def nearestNeighbors(source, target):
     finds the nearest target point for every source point
     """
 
-    tree = KDTree(source)
-    dist, ind = tree.query(target)
+    tree = KDTree(target)
+    dist, ind = tree.query(source)
 
     return dist, ind
 
@@ -75,9 +75,9 @@ def bestFitTransform(source, target):
         Vt[-1, :] *= -1
         rotation_matrix = Vt.T @ U.T
 
-        translation_vector = centroid_target - rotation_matrix @ centroid_source
+    translation_vector = centroid_target - rotation_matrix @ centroid_source
 
-        return rotation_matrix, translation_vector
+    return rotation_matrix, translation_vector
 
 
 
