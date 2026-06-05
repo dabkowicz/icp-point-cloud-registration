@@ -58,16 +58,31 @@ because of this a 4x4 transformation matrix can then simultaneously perform:
 """
 
 
-def transform_points(points, angle_x=0, angle_y=0, angle_z=0, translation=(0,0,0)):
+
+def transform_points(
+        points,
+        angle_x=0,
+        angle_y=0,
+        angle_z=0,
+        translation=(0, 0, 0),
+        noise=0.0
+):
+
     rx = rotation_matrix_x(angle_x)
     ry = rotation_matrix_y(angle_y)
     rz = rotation_matrix_z(angle_z)
 
     rotation = rz @ ry @ rx
 
-    transformation = create_transformation_matrix( rotation=rotation, translation=np.array(translation) )
+    transformation = create_transformation_matrix(
+        rotation=rotation,
+        translation=np.array(translation)
+    )
 
     transformed_points = apply_transformation(points, transformation)
+
+    if noise > 0:
+        transformed_points += np.random.normal(0, noise, transformed_points.shape)
 
     return transformed_points, transformation
 
