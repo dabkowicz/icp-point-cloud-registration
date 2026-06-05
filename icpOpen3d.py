@@ -82,3 +82,21 @@ it returns:
 - rmse (root mean square error)
 - elapsed time (execution time in seconds)
 """
+
+
+
+def visualize_open3d_clouds(source_np, target_np, title="open3D point cloud visualization"):
+    """
+    visualizes two point clouds using open3D
+
+    source cloud is shown in pink
+    target cloud is shown in blue
+    """
+
+    source = numpy_to_open3d(source_np, color=[1.0, 0.45, 0.75])
+    target = numpy_to_open3d(target_np, color=[0.25, 0.65, 1.0])
+
+    o3d.visualization.draw_geometries(
+        [source, target],
+        window_name=title
+    )
