@@ -51,7 +51,6 @@ def apply_transformation(points, transformation):
 
     return transformed_points[:, :3]
 """
-^^^
 this function takes 3D points and temporarily transforms them into a homogeneous form: [x, y, z, 1]
 
 because of this a 4x4 transformation matrix can then simultaneously perform:
