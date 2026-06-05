@@ -15,9 +15,6 @@ how this algorithm works:
 
 
 def createBoxPoints():
-    """
-    generates points on the surface of a three-dimensional box
-    """
 
     points = []
 
@@ -31,41 +28,41 @@ def createBoxPoints():
             points.append([x, 1, y])
 
     return np.unique(points, axis=0)
+ #^^^generates points on the surface of a three-dimensional box
+
+
 
 
 def transformPointCloud(points, rotation_matrix, translation_vector):
-    """
-    applies rotation and translation to a point cloud
-    """
 
     return np.dot(points, rotation_matrix.T) + translation_vector
+#^^^applies rotation and translation to a point cloud
+
+
 
 
 def addNoise(points, noise_level=0.02):
-    """
-    adds Gaussian noise to simulate measurement errors
-    """
 
     noise = np.random.normal(0, noise_level, points.shape)
     return points + noise
+#^^^adds Gaussian noise to simulate measurement errors
+
+
 
 
 def nearestNeighbors(source, target):
-    """
-    finds the nearest target point for every source point
-    """
 
     tree = KDTree(target)
     distances, indices = tree.query(source)
 
     return distances, indices
+#^^^finds the nearest target point for every source point
+
+
+
 
 
 def bestFitTransform(source, target):
-    """
-    computes the best rotation and translation that aligns source to target
-    uses SVD
-    """
 
     centroid_source = np.mean(source, axis=0)
     centroid_target = np.mean(target, axis=0)
@@ -86,12 +83,12 @@ def bestFitTransform(source, target):
     translation_vector = centroid_target - rotation_matrix @ centroid_source
 
     return rotation_matrix, translation_vector
+#^^^computes the best rotation and translation that aligns source to target uses SVD
+
+
 
 
 def runICP(source, target, max_iterations=50, tolerance=1e-6):
-    """
-    runs the Iterative Closest Point algorithm
-    """
 
     transformed_source = source.copy()
     errors = []
@@ -119,12 +116,12 @@ def runICP(source, target, max_iterations=50, tolerance=1e-6):
             break
 
     return transformed_source, errors
+#^^^ runs the Iterative Closest Point algorithm
+
 
 
 def paintClouds(source, target, title="Point cloud visualization"):
-    """
-    visualizes two 3D point clouds
-    """
+
 
     fig = plt.figure(figsize=(8, 7))
     ax = fig.add_subplot(111, projection="3d")
@@ -139,12 +136,9 @@ def paintClouds(source, target, title="Point cloud visualization"):
     ax.legend()
 
     plt.show()
-
+#it visualise two point clouds
 
 def plotErrors(errors):
-    """
-    plots ICP error in consecutive iterations
-    """
 
     plt.figure(figsize=(7, 5))
     plt.plot(errors, marker="o")
@@ -154,6 +148,7 @@ def plotErrors(errors):
     plt.grid(True)
     plt.show()
 
+#^^^plots ICP error in consecutive iterations
 
 def main():
     target = createBoxPoints()
