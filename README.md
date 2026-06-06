@@ -81,3 +81,37 @@ The animation mode shows how the source point cloud changes its position in each
 ├── experiments.py
 ├── results/
 └── README.md
+```
+
+## Custom ICP implementation
+
+The custom ICP implementation is based on the following operations:
+
+- nearest neighbour search using KDTree
+- centroid calculation for both point clouds
+- covariance matrix construction
+- Singular Value Decomposition
+- rotation and translation estimation
+- iterative transformation update
+- convergence check based on the error change
+
+The implemented algorithm aligns the transformed source point cloud to the target point cloud step by step. In each iteration, the closest corresponding points are found, the best rigid transformation is calculated, and the source cloud is moved closer to the target cloud.
+
+## Metrics
+
+The project uses the following metrics to evaluate the quality of point cloud registration:
+
+- mean error in each ICP iteration
+- RMSE after alignment
+- execution time
+- number of iterations
+- Open3D fitness value
+
+These metrics make it possible to compare the custom NumPy implementation with the Open3D implementation and analyze how accurately the point clouds were aligned.
+
+## How to run
+
+Install the required libraries:
+
+```bash
+pip install numpy scipy matplotlib open3d
