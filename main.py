@@ -388,7 +388,7 @@ def choose_project_options():
 
     title = tk.Label(
         content,
-        text="icp point cloud registration",
+        text="ICP point cloud registration",
         font=("Georgia", 30, "bold"),
         bg=cultured_pearl,
         fg=dark_ruby
