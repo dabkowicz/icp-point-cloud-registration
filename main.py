@@ -12,9 +12,11 @@ from icpNumpy import calculate_rmse
 
 from icpOpen3d import run_open3d_icp
 from icpOpen3d import visualize_before_after_open3d
+from icpOpen3d import animate_icp_open3d
 
 from visualizations import plot_before_after_matplotlib
 from visualizations import plot_icp_errors
+from visualizations import animate_icp_alignment
 from visualizations import print_result_summary
 
 
@@ -23,13 +25,14 @@ dark_ruby = "#720013"
 meteorite = "#2c2929"
 cultured_pearl = "#f5f4f2"
 catacomb_walls = "#dcd7d4"
-creme_white = "#c3b79d"
+input_background = "#e7e1dc"
+soft_text = "#8f8882"
 
 
 title_font = ("Georgia", 24, "bold")
 subtitle_font = ("Segoe UI", 12)
 label_font = ("Segoe UI", 11, "bold")
-button_font = ("Segoe UI", 12, "bold")
+button_font = ("Segoe UI", 13, "bold")
 small_font = ("Segoe UI", 9)
 
 
@@ -84,7 +87,7 @@ def choose_project_options():
     """
 
     selected_options = {
-        "visualization": "matplotlib",
+        "visualization": "Animation for Matplotlib",
         "shape": "rubber duck"
     }
 
@@ -94,10 +97,10 @@ def choose_project_options():
         window.destroy()
 
     window = tk.Tk()
-    window.title("icp point cloud registration")
+    window.title("ICP point cloud registration")
 
-    window_width = 600
-    window_height = 430
+    window_width = 660
+    window_height = 500
 
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
@@ -123,9 +126,9 @@ def choose_project_options():
         canvas,
         55,
         45,
-        545,
-        385,
-        radius=32,
+        605,
+        455,
+        radius=34,
         fill=cultured_pearl,
         outline=catacomb_walls,
         width=2
@@ -137,11 +140,11 @@ def choose_project_options():
     )
 
     canvas.create_window(
-        300,
-        215,
+        330,
+        250,
         window=content,
-        width=455,
-        height=300
+        width=500,
+        height=360
     )
 
     title = tk.Label(
@@ -160,16 +163,16 @@ def choose_project_options():
         fg=meteorite
     )
 
-    title.pack(pady=(18, 3))
-    subtitle.pack(pady=(0, 24))
+    title.pack(pady=(18, 4))
+    subtitle.pack(pady=(0, 26))
 
     style = ttk.Style()
     style.theme_use("clam")
 
     style.configure(
         "Custom.TCombobox",
-        fieldbackground="#ebe7e2",
-        background="#ebe7e2",
+        fieldbackground=input_background,
+        background=input_background,
         foreground=meteorite,
         arrowcolor=dark_ruby,
         bordercolor=catacomb_walls,
@@ -180,8 +183,8 @@ def choose_project_options():
 
     style.map(
         "Custom.TCombobox",
-        fieldbackground=[("readonly", "#ebe7e2")],
-        selectbackground=[("readonly", "#ebe7e2")],
+        fieldbackground=[("readonly", input_background)],
+        selectbackground=[("readonly", input_background)],
         selectforeground=[("readonly", meteorite)]
     )
 
@@ -192,7 +195,7 @@ def choose_project_options():
 
     form.pack()
 
-    visualization_var = tk.StringVar(value="matplotlib")
+    visualization_var = tk.StringVar(value="Animation for Matplotlib")
     shape_var = tk.StringVar(value="rubber duck")
 
     visualization_block = tk.Frame(
@@ -208,51 +211,58 @@ def choose_project_options():
     visualization_block.grid(
         row=0,
         column=0,
-        padx=18
+        padx=22
     )
 
     shape_block.grid(
         row=0,
         column=1,
-        padx=18
+        padx=22
     )
+
+    label_color = blue_depths
 
     visualization_label = tk.Label(
         visualization_block,
         text="visualization mode",
         font=label_font,
         bg=cultured_pearl,
-        fg=blue_depths,
+        fg=label_color,
         anchor="center",
         justify="center"
     )
 
-    visualization_label.pack(pady=(0, 7))
+    visualization_label.pack(pady=(0, 8))
 
     visualization_box = ttk.Combobox(
         visualization_block,
         textvariable=visualization_var,
-        values=["matplotlib", "open3d"],
+        values=[
+            "Matplotlib before after",
+            "Open3D before after",
+            "Animation for Matplotlib",
+            "Animation for Open3D"
+        ],
         state="readonly",
         font=("Segoe UI", 10),
-        width=21,
+        width=26,
         justify="center",
         style="Custom.TCombobox"
     )
 
-    visualization_box.pack()
+    visualization_box.pack(ipady=6)
 
     shape_label = tk.Label(
         shape_block,
         text="shape",
         font=label_font,
         bg=cultured_pearl,
-        fg=dark_ruby,
+        fg=label_color,
         anchor="center",
         justify="center"
     )
 
-    shape_label.pack(pady=(0, 7))
+    shape_label.pack(pady=(0, 8))
 
     shape_box = ttk.Combobox(
         shape_block,
@@ -260,236 +270,65 @@ def choose_project_options():
         values=["cube", "sphere", "rubber duck"],
         state="readonly",
         font=("Segoe UI", 10),
-        width=21,
+        width=26,
         justify="center",
         style="Custom.TCombobox"
     )
 
-    shape_box.pack()
+    shape_box.pack(ipady=6)
+
+    button_canvas = tk.Canvas(
+        content,
+        width=295,
+        height=64,
+        bg=cultured_pearl,
+        highlightthickness=0
+    )
+
+    button_canvas.pack(pady=(32, 0))
+
+    create_rounded_rectangle(
+        button_canvas,
+        5,
+        5,
+        290,
+        59,
+        radius=22,
+        fill=dark_ruby,
+        outline=dark_ruby
+    )
+
+    button_canvas.create_text(
+        147,
+        32,
+        text="start visualization",
+        font=button_font,
+        fill=cultured_pearl
+    )
+
+    button_canvas.bind("<Button-1>", lambda event: start_project())
+    button_canvas.bind("<Enter>", lambda event: button_canvas.config(cursor="hand2"))
 
     description = tk.Label(
         content,
         text="the program creates a transformed source cloud\nand aligns it with the target cloud using icp",
         font=small_font,
         bg=cultured_pearl,
-        fg=meteorite,
+        fg=soft_text,
         justify="center"
     )
 
-    description.pack(pady=(24, 18))
-
-    start_button = tk.Button(
-        content,
-        text="start visualization",
-        font=button_font,
-        width=26,
-        height=2,
-        bg=dark_ruby,
-        fg=cultured_pearl,
-        activebackground=meteorite,
-        activeforeground=cultured_pearl,
-        bd=0,
-        cursor="hand2",
-        command=start_project
-    )
-
-    start_button.pack()
+    description.pack(pady=(16, 0))
 
     footer = tk.Label(
         content,
         text="source cloud vs target cloud alignment",
         font=small_font,
         bg=cultured_pearl,
-        fg="#77706b"
+        fg="#aaa39d"
     )
 
-    footer.pack(pady=(15, 0))
-
-    window.mainloop()
-
-    return selected_options["visualization"], selected_options["shape"]
-
-    def start_project():
-        selected_options["visualization"] = visualization_var.get()
-        selected_options["shape"] = shape_var.get()
-        window.destroy()
-
-    window = tk.Tk()
-    window.title("icp point cloud registration")
-    window_width = 560
-    window_height = 420
-
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-
-    x = int((screen_width / 2) - (window_width / 2))
-    y = int((screen_height / 2) - (window_height / 2))
-
-    window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-    window.resizable(False, False)
-    window.configure(bg=blue_depths)
-
-    style = ttk.Style()
-    style.theme_use("clam")
-
-    style.configure(
-        "TCombobox",
-        fieldbackground=cultured_pearl,
-        background=cultured_pearl,
-        foreground=meteorite,
-        arrowcolor=meteorite,
-        padding=6
-    )
-
-    card = tk.Frame(
-        window,
-        bg=cultured_pearl,
-        bd=0,
-        relief="flat",
-        highlightbackground=catacomb_walls,
-        highlightthickness=2
-    )
-
-    card.place(
-        relx=0.5,
-        rely=0.5,
-        anchor="center",
-        width=455,
-        height=335
-    )
-
-    title = tk.Label(
-        card,
-        text="icp point cloud registration",
-        font=title_font,
-        bg=cultured_pearl,
-        fg=dark_ruby
-    )
-
-    subtitle = tk.Label(
-        card,
-        text="choose visualization mode and shape",
-        font=subtitle_font,
-        bg=cultured_pearl,
-        fg=meteorite
-    )
-
-    title.pack(pady=(25, 4))
-    subtitle.pack(pady=(0, 22))
-
-    form = tk.Frame(
-        card,
-        bg=cultured_pearl
-    )
-
-    form.pack()
-
-    visualization_var = tk.StringVar(value="matplotlib")
-    shape_var = tk.StringVar(value="rubber duck")
-
-    visualization_label = tk.Label(
-        form,
-        text="visualization mode",
-        font=label_font,
-        bg=cultured_pearl,
-        fg=blue_depths
-    )
-
-    visualization_label.grid(
-        row=0,
-        column=0,
-        sticky="w",
-        padx=12,
-        pady=(0, 5)
-    )
-
-    visualization_box = ttk.Combobox(
-        form,
-        textvariable=visualization_var,
-        values=["matplotlib", "open3d"],
-        state="readonly",
-        font=("Segoe UI", 10),
-        width=22
-    )
-
-    visualization_box.grid(
-        row=1,
-        column=0,
-        sticky="w",
-        padx=12,
-        pady=(0, 15)
-    )
-
-    shape_label = tk.Label(
-        form,
-        text="shape",
-        font=label_font,
-        bg=cultured_pearl,
-        fg=dark_ruby
-    )
-
-    shape_label.grid(
-        row=0,
-        column=1,
-        sticky="w",
-        padx=12,
-        pady=(0, 5)
-    )
-
-    shape_box = ttk.Combobox(
-        form,
-        textvariable=shape_var,
-        values=["cube", "sphere", "rubber duck"],
-        state="readonly",
-        font=("Segoe UI", 10),
-        width=22
-    )
-
-    shape_box.grid(
-        row=1,
-        column=1,
-        sticky="w",
-        padx=12,
-        pady=(0, 15)
-    )
-
-    description = tk.Label(
-        card,
-        text="the program creates a transformed source cloud\nand aligns it with the target cloud using icp",
-        font=small_font,
-        bg=cultured_pearl,
-        fg=meteorite,
-        justify="center"
-    )
-
-    description.pack(pady=(2, 16))
-
-    start_button = tk.Button(
-        card,
-        text="start visualization",
-        font=button_font,
-        width=26,
-        height=2,
-        bg=dark_ruby,
-        fg=cultured_pearl,
-        activebackground=meteorite,
-        activeforeground=cultured_pearl,
-        bd=0,
-        cursor="hand2",
-        command=start_project
-    )
-
-    start_button.pack(pady=(0, 12))
-
-    footer = tk.Label(
-        card,
-        text="source cloud vs target cloud alignment",
-        font=small_font,
-        bg=cultured_pearl,
-        fg="#77706b"
-    )
-
-    footer.pack()
+    footer.pack(pady=(10, 0))
 
     window.mainloop()
 
@@ -553,37 +392,7 @@ def main():
     print("\ntrue transformation used to create source cloud")
     print(true_transformation)
 
-    if visualization_mode == "matplotlib":
-        aligned_source, numpy_transformation, errors, numpy_time = run_numpy_icp(
-            source,
-            target,
-            max_iterations=50,
-            tolerance=1e-6
-        )
-
-        numpy_rmse = calculate_rmse(
-            aligned_source,
-            target
-        )
-
-        print_result_summary(
-            method_name="numpy icp",
-            transformation=numpy_transformation,
-            rmse=numpy_rmse,
-            elapsed_time=numpy_time
-        )
-
-        plot_before_after_matplotlib(
-            source_before=source,
-            target_before=target,
-            source_after=aligned_source,
-            target_after=target,
-            info_text=f"shape: {shape_name}     rmse: {numpy_rmse:.6f}     time: {numpy_time:.4f} s     iterations: {len(errors)}"
-        )
-
-        plot_icp_errors(errors)
-
-    if visualization_mode == "open3d":
+    if visualization_mode == "Open3D before after":
         aligned_source, open3d_transformation, fitness, rmse, open3d_time = run_open3d_icp(
             source,
             target,
@@ -593,7 +402,7 @@ def main():
         )
 
         print_result_summary(
-            method_name="open3d icp",
+            method_name="Open3D ICP",
             transformation=open3d_transformation,
             rmse=rmse,
             elapsed_time=open3d_time,
@@ -606,6 +415,57 @@ def main():
             source_after=aligned_source,
             target_after=target
         )
+
+    if visualization_mode in [
+        "Matplotlib before after",
+        "Animation for Matplotlib",
+        "Animation for Open3D"
+    ]:
+        aligned_source, numpy_transformation, errors, numpy_time, history = run_numpy_icp(
+            source,
+            target,
+            max_iterations=50,
+            tolerance=1e-6,
+            save_history=True
+        )
+
+        numpy_rmse = calculate_rmse(
+            aligned_source,
+            target
+        )
+
+        print_result_summary(
+            method_name="NumPy ICP",
+            transformation=numpy_transformation,
+            rmse=numpy_rmse,
+            elapsed_time=numpy_time
+        )
+
+        if visualization_mode == "Matplotlib before after":
+            plot_before_after_matplotlib(
+                source_before=source,
+                target_before=target,
+                source_after=aligned_source,
+                target_after=target,
+                info_text=f"shape: {shape_name}     rmse: {numpy_rmse:.6f}     time: {numpy_time:.4f} s     iterations: {len(errors)}"
+            )
+
+            plot_icp_errors(errors)
+
+        if visualization_mode == "Animation for Matplotlib":
+            animate_icp_alignment(
+                target=target,
+                history=history,
+                errors=errors,
+                interval=450
+            )
+
+        if visualization_mode == "Animation for Open3D":
+            animate_icp_open3d(
+                target=target,
+                history=history,
+                interval=0.08
+            )
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 blue_depths = "#2c356a"
@@ -7,7 +8,139 @@ dark_ruby = "#720013"
 meteorite = "#2c2929"
 cultured_pearl = "#f5f4f2"
 catacomb_walls = "#dcd7d4"
-creme_white = "#c3b79d"
+
+def animate_icp_alignment(target, history, errors=None, interval=450):
+    """
+    animates icp alignment process step by step using matplotlib
+
+    parameters:
+    target: reference point cloud
+    history: list of source point clouds saved after consecutive icp iterations
+    errors: optional list of mean errors from consecutive iterations
+    interval: delay between animation frames in milliseconds
+
+    returns:
+    none
+    """
+
+    fig = plt.figure(
+        figsize=(16, 9),
+        facecolor=cultured_pearl
+    )
+
+    maximize_matplotlib_window()
+
+    ax = fig.add_subplot(111, projection="3d")
+    ax.set_facecolor("#fbfaf8")
+
+    fig.suptitle(
+        "iterative closest point animation",
+        fontsize=28,
+        fontweight="bold",
+        color=dark_ruby
+    )
+
+    fig.text(
+        0.5,
+        0.925,
+        "source cloud is gradually aligned with the target cloud",
+        ha="center",
+        fontsize=13,
+        color=meteorite
+    )
+
+    ax.scatter(
+        target[:, 0],
+        target[:, 1],
+        target[:, 2],
+        s=4,
+        c=blue_depths,
+        alpha=0.45,
+        label="target"
+    )
+
+    source_plot = ax.scatter(
+        history[0][:, 0],
+        history[0][:, 1],
+        history[0][:, 2],
+        s=4,
+        c=dark_ruby,
+        alpha=0.55,
+        label="source"
+    )
+
+    ax.set_title(
+        "iteration 0",
+        fontsize=15,
+        color=meteorite
+    )
+
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_zlabel("z")
+    ax.view_init(elev=20, azim=-60)
+    ax.legend()
+
+    all_points = np.vstack([target] + history)
+
+    ax.set_xlim(np.min(all_points[:, 0]), np.max(all_points[:, 0]))
+    ax.set_ylim(np.min(all_points[:, 1]), np.max(all_points[:, 1]))
+    ax.set_zlim(np.min(all_points[:, 2]), np.max(all_points[:, 2]))
+    set_axes_equal(ax)
+
+    info_box = fig.text(
+        0.5,
+        0.045,
+        "",
+        ha="center",
+        fontsize=12,
+        color=meteorite,
+        bbox=dict(
+            facecolor=cultured_pearl,
+            edgecolor=catacomb_walls,
+            boxstyle="round,pad=0.6"
+        )
+    )
+
+    def update(frame):
+        current_source = history[frame]
+
+        source_plot._offsets3d = (
+            current_source[:, 0],
+            current_source[:, 1],
+            current_source[:, 2]
+        )
+
+        ax.set_title(
+            f"iteration {frame}",
+            fontsize=15,
+            color=meteorite
+        )
+
+        if errors is not None and frame > 0 and frame - 1 < len(errors):
+            info_box.set_text(
+                f"iteration: {frame}     mean error: {errors[frame - 1]:.6f}"
+            )
+        else:
+            info_box.set_text(
+                f"iteration: {frame}"
+            )
+
+        return source_plot,
+
+    animation = FuncAnimation(
+        fig,
+        update,
+        frames=len(history),
+        interval=interval,
+        blit=False,
+        repeat=True
+    )
+
+    plt.tight_layout(rect=[0, 0.07, 1, 0.89])
+    plt.show()
+
+
 
 
 def set_axes_equal(ax):
@@ -62,6 +195,32 @@ def maximize_matplotlib_window():
             pass
 
 
+def prepare_axis(ax, title):
+    """
+    prepares one 3d axis for point cloud visualization
+
+    parameters:
+    ax: matplotlib 3d axis object
+    title: plot title
+
+    returns:
+    none
+    """
+
+    ax.set_title(
+        title,
+        fontsize=14,
+        color=meteorite
+    )
+
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_zlabel("z")
+
+    ax.set_facecolor("#fbfaf8")
+    ax.view_init(elev=20, azim=-60)
+
+
 def plot_before_after_matplotlib(
         source_before,
         target_before,
@@ -111,7 +270,6 @@ def plot_before_after_matplotlib(
     )
 
     ax_before = fig.add_subplot(121, projection="3d")
-    ax_before.set_facecolor("#fbfaf8")
 
     ax_before.scatter(
         target_before[:, 0],
@@ -133,21 +291,11 @@ def plot_before_after_matplotlib(
         label="source"
     )
 
-    ax_before.set_title(
-        "before icp",
-        fontsize=14,
-        color=meteorite
-    )
-
-    ax_before.set_xlabel("x")
-    ax_before.set_ylabel("y")
-    ax_before.set_zlabel("z")
-    ax_before.view_init(elev=20, azim=-60)
+    prepare_axis(ax_before, "before icp")
     ax_before.legend()
     set_axes_equal(ax_before)
 
     ax_after = fig.add_subplot(122, projection="3d")
-    ax_after.set_facecolor("#fbfaf8")
 
     ax_after.scatter(
         target_after[:, 0],
@@ -169,16 +317,7 @@ def plot_before_after_matplotlib(
         label="source after icp"
     )
 
-    ax_after.set_title(
-        "after icp",
-        fontsize=14,
-        color=meteorite
-    )
-
-    ax_after.set_xlabel("x")
-    ax_after.set_ylabel("y")
-    ax_after.set_zlabel("z")
-    ax_after.view_init(elev=20, azim=-60)
+    prepare_axis(ax_after, "after icp")
     ax_after.legend()
     set_axes_equal(ax_after)
 
@@ -238,6 +377,138 @@ def plot_icp_errors(errors):
     plt.grid(True, alpha=0.35)
 
     plt.tight_layout()
+    plt.show()
+
+
+def animate_icp_alignment(target, history, errors=None, interval=450):
+    """
+    animates icp alignment process step by step
+
+    parameters:
+    target: reference point cloud
+    history: list of source point clouds saved after consecutive icp iterations
+    errors: optional list of mean errors from consecutive iterations
+    interval: delay between animation frames in milliseconds
+
+    returns:
+    none
+    """
+
+    fig = plt.figure(
+        figsize=(16, 9),
+        facecolor=cultured_pearl
+    )
+
+    maximize_matplotlib_window()
+
+    ax = fig.add_subplot(111, projection="3d")
+    ax.set_facecolor("#fbfaf8")
+
+    fig.suptitle(
+        "iterative closest point animation",
+        fontsize=28,
+        fontweight="bold",
+        color=dark_ruby
+    )
+
+    subtitle = fig.text(
+        0.5,
+        0.925,
+        "source cloud is gradually aligned with the target cloud",
+        ha="center",
+        fontsize=13,
+        color=meteorite
+    )
+
+    target_plot = ax.scatter(
+        target[:, 0],
+        target[:, 1],
+        target[:, 2],
+        s=4,
+        c=blue_depths,
+        alpha=0.45,
+        label="target"
+    )
+
+    source_plot = ax.scatter(
+        history[0][:, 0],
+        history[0][:, 1],
+        history[0][:, 2],
+        s=4,
+        c=dark_ruby,
+        alpha=0.55,
+        label="source"
+    )
+
+    ax.set_title(
+        "iteration 0",
+        fontsize=15,
+        color=meteorite
+    )
+
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_zlabel("z")
+    ax.view_init(elev=20, azim=-60)
+    ax.legend()
+
+    all_points = np.vstack([target] + history)
+
+    ax.set_xlim(np.min(all_points[:, 0]), np.max(all_points[:, 0]))
+    ax.set_ylim(np.min(all_points[:, 1]), np.max(all_points[:, 1]))
+    ax.set_zlim(np.min(all_points[:, 2]), np.max(all_points[:, 2]))
+    set_axes_equal(ax)
+
+    info_box = fig.text(
+        0.5,
+        0.045,
+        "",
+        ha="center",
+        fontsize=12,
+        color=meteorite,
+        bbox=dict(
+            facecolor=cultured_pearl,
+            edgecolor=catacomb_walls,
+            boxstyle="round,pad=0.6"
+        )
+    )
+
+    def update(frame):
+        current_source = history[frame]
+
+        source_plot._offsets3d = (
+            current_source[:, 0],
+            current_source[:, 1],
+            current_source[:, 2]
+        )
+
+        ax.set_title(
+            f"iteration {frame}",
+            fontsize=15,
+            color=meteorite
+        )
+
+        if errors is not None and frame > 0 and frame - 1 < len(errors):
+            info_box.set_text(
+                f"iteration: {frame}     mean error: {errors[frame - 1]:.6f}"
+            )
+        else:
+            info_box.set_text(
+                f"iteration: {frame}"
+            )
+
+        return source_plot,
+
+    animation = FuncAnimation(
+        fig,
+        update,
+        frames=len(history),
+        interval=interval,
+        blit=False,
+        repeat=True
+    )
+
+    plt.tight_layout(rect=[0, 0.07, 1, 0.89])
     plt.show()
 
 

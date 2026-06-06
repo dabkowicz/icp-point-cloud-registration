@@ -142,3 +142,75 @@ def visualize_before_after_open3d(source_before, target_before, source_after, ta
         left=50,
         top=50
     )
+
+def animate_icp_open3d(target, history, interval=0.08):
+        """
+        animates icp alignment process using open3d
+
+        parameters:
+        target: reference point cloud
+        history: list of source point clouds saved after consecutive icp iterations
+        interval: delay between animation frames in seconds
+
+        returns:
+        none
+        """
+
+        import time
+
+        target_cloud = numpy_to_open3d(
+            target,
+            color=[0.17, 0.21, 0.42]
+        )
+
+        source_cloud = numpy_to_open3d(
+            history[0],
+            color=[0.45, 0.00, 0.07]
+        )
+
+        visualizer = o3d.visualization.Visualizer()
+        visualizer.create_window(
+            window_name="open3d icp animation",
+            width=1600,
+            height=900,
+            left=50,
+            top=50
+        )
+
+        visualizer.add_geometry(target_cloud)
+        visualizer.add_geometry(source_cloud)
+
+        render_option = visualizer.get_render_option()
+        render_option.point_size = 3.0
+        render_option.background_color = np.array([0.96, 0.95, 0.93])
+
+        view_control = visualizer.get_view_control()
+        view_control.set_zoom(0.75)
+
+        frame_index = 0
+        last_update_time = time.time()
+
+        def animation_callback(vis):
+            nonlocal frame_index
+            nonlocal last_update_time
+
+            current_time = time.time()
+
+            if current_time - last_update_time >= interval:
+                current_source = history[frame_index]
+
+                source_cloud.points = o3d.utility.Vector3dVector(current_source)
+                vis.update_geometry(source_cloud)
+
+                frame_index += 1
+
+                if frame_index >= len(history):
+                    frame_index = 0
+
+                last_update_time = current_time
+
+            return False
+
+        visualizer.register_animation_callback(animation_callback)
+        visualizer.run()
+        visualizer.destroy_window()
