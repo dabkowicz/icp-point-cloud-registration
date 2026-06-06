@@ -4,6 +4,7 @@ from tkinter import ttk
 from shapes import generateCubePoints
 from shapes import generateSpherePoints
 from shapes import generateRubberDuckPoints
+from shapes import generate3DGlassesPoints
 
 from transformations import transform_points
 
@@ -51,6 +52,52 @@ def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=25, **kwargs):
     returns:
     rounded rectangle object id
     """
+
+    canvas.create_rectangle(
+        465,
+        76,
+        500,
+        94,
+        outline=blue_depths,
+        width=3
+    )
+
+    canvas.create_rectangle(
+        512,
+        76,
+        547,
+        94,
+        outline=dark_ruby,
+        width=3
+    )
+
+    canvas.create_line(
+        500,
+        85,
+        512,
+        85,
+        fill=meteorite,
+        width=3
+    )
+
+    canvas.create_line(
+        465,
+        85,
+        442,
+        76,
+        fill=meteorite,
+        width=3
+    )
+
+    canvas.create_line(
+        547,
+        85,
+        570,
+        76,
+        fill=meteorite,
+        width=3
+    )
+
 
     points = [
         x1 + radius, y1,
@@ -267,7 +314,7 @@ def choose_project_options():
     shape_box = ttk.Combobox(
         shape_block,
         textvariable=shape_var,
-        values=["cube", "sphere", "rubber duck"],
+        values=["cube", "sphere", "rubber duck", "3d glasses"],
         state="readonly",
         font=("Segoe UI", 10),
         width=26,
@@ -362,6 +409,11 @@ def generate_selected_shape(shape_name):
 
     if shape_name == "rubber duck":
         return generateRubberDuckPoints(
+            n_points=3500,
+            noise=0.0
+        )
+    if shape_name == "3d glasses":
+        return generate3DGlassesPoints(
             n_points=3500,
             noise=0.0
         )
