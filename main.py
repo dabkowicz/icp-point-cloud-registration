@@ -20,7 +20,7 @@ from visualizations import plot_icp_errors
 from visualizations import animate_icp_alignment
 from visualizations import print_result_summary
 
-
+#all of the colors that are used
 blue_depths = "#2c356a"
 dark_ruby = "#720013"
 meteorite = "#2c2929"
