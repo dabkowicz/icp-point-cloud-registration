@@ -121,6 +121,198 @@ def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=25, **kwargs):
     )
 
 
+
+
+def draw_glasses_panel(canvas, x, y):
+    """
+    draws a cleaner front part of paper 3d glasses
+
+    parameters:
+    canvas: tkinter canvas
+    x: left position
+    y: top position
+
+    returns:
+    none
+    """
+
+    frame_fill = "#f7f6f4"
+    frame_shadow = "#d6d0ca"
+    frame_outline = "#c8c1ba"
+
+    left_lens_fill = "#d8edf4"
+    right_lens_fill = "#efd9dd"
+
+    left_lens_outline = blue_depths
+    right_lens_outline = dark_ruby
+
+    # shadow behind glasses
+    create_rounded_rectangle(
+        canvas,
+        x + 14,
+        y + 18,
+        x + 626,
+        y + 150,
+        radius=6,
+        fill=frame_shadow,
+        outline=frame_shadow
+    )
+
+    # main white front
+    create_rounded_rectangle(
+        canvas,
+        x + 8,
+        y + 12,
+        x + 620,
+        y + 144,
+        radius=6,
+        fill=frame_fill,
+        outline=frame_outline,
+        width=2
+    )
+
+    # nose cutout
+    canvas.create_oval(
+        x + 282,
+        y + 96,
+        x + 346,
+        y + 162,
+        fill=cultured_pearl,
+        outline=cultured_pearl
+    )
+
+    # hide upper part of oval so only the bottom cut stays visible
+    canvas.create_rectangle(
+        x + 278,
+        y + 12,
+        x + 350,
+        y + 114,
+        fill=frame_fill,
+        outline=frame_fill
+    )
+
+    # redraw top border after covering oval
+    canvas.create_line(
+        x + 8,
+        y + 12,
+        x + 278,
+        y + 12,
+        fill=frame_outline,
+        width=2
+    )
+
+    canvas.create_line(
+        x + 350,
+        y + 12,
+        x + 620,
+        y + 12,
+        fill=frame_outline,
+        width=2
+    )
+
+    # redraw bottom border left and right of the nose cut
+    canvas.create_line(
+        x + 8,
+        y + 144,
+        x + 282,
+        y + 144,
+        fill=frame_outline,
+        width=2
+    )
+
+    canvas.create_line(
+        x + 346,
+        y + 144,
+        x + 620,
+        y + 144,
+        fill=frame_outline,
+        width=2
+    )
+
+    # nose arc outline
+    canvas.create_arc(
+        x + 282,
+        y + 96,
+        x + 346,
+        y + 160,
+        start=0,
+        extent=180,
+        style="arc",
+        outline=frame_outline,
+        width=2
+    )
+
+    # left lens
+    create_rounded_rectangle(
+        canvas,
+        x + 72,
+        y + 38,
+        x + 286,
+        y + 116,
+        radius=10,
+        fill=left_lens_fill,
+        outline=left_lens_outline,
+        width=2
+    )
+
+    # right lens
+    create_rounded_rectangle(
+        canvas,
+        x + 344,
+        y + 38,
+        x + 558,
+        y + 116,
+        radius=10,
+        fill=right_lens_fill,
+        outline=right_lens_outline,
+        width=2
+    )
+
+    # subtle shine on left lens
+    canvas.create_polygon(
+        x + 208, y + 40,
+        x + 286, y + 40,
+        x + 286, y + 68,
+        x + 246, y + 116,
+        x + 208, y + 116,
+        fill="#e8f4f8",
+        outline="#e8f4f8"
+    )
+
+    # subtle shine on right lens
+    canvas.create_polygon(
+        x + 480, y + 40,
+        x + 558, y + 40,
+        x + 558, y + 68,
+        x + 518, y + 116,
+        x + 480, y + 116,
+        fill="#f3e6e9",
+        outline="#f3e6e9"
+    )
+
+    # labels
+    canvas.create_text(
+        x + 179,
+        y + 54,
+        text="visualization mode",
+        font=("Segoe UI", 12, "bold"),
+        fill=blue_depths
+    )
+
+    canvas.create_text(
+        x + 451,
+        y + 54,
+        text="shape",
+        font=("Segoe UI", 12, "bold"),
+        fill=blue_depths
+    )
+
+
+
+
+
+
+
 def choose_project_options():
     """
     opens a styled window where the user chooses visualization mode and shape
@@ -146,8 +338,8 @@ def choose_project_options():
     window = tk.Tk()
     window.title("ICP point cloud registration")
 
-    window_width = 660
-    window_height = 500
+    window_width = 920
+    window_height = 660
 
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
@@ -159,7 +351,7 @@ def choose_project_options():
     window.resizable(False, False)
     window.configure(bg=blue_depths)
 
-    canvas = tk.Canvas(
+    root_canvas = tk.Canvas(
         window,
         width=window_width,
         height=window_height,
@@ -167,14 +359,14 @@ def choose_project_options():
         highlightthickness=0
     )
 
-    canvas.pack(fill="both", expand=True)
+    root_canvas.pack(fill="both", expand=True)
 
     create_rounded_rectangle(
-        canvas,
-        55,
-        45,
+        root_canvas,
+        50,
+        40,
+        870,
         605,
-        455,
         radius=34,
         fill=cultured_pearl,
         outline=catacomb_walls,
@@ -186,103 +378,73 @@ def choose_project_options():
         bg=cultured_pearl
     )
 
-    canvas.create_window(
-        330,
-        250,
+    root_canvas.create_window(
+        460,
+        323,
         window=content,
-        width=500,
-        height=360
+        width=760,
+        height=520
     )
 
     title = tk.Label(
         content,
         text="icp point cloud registration",
-        font=title_font,
+        font=("Georgia", 30, "bold"),
         bg=cultured_pearl,
         fg=dark_ruby
     )
 
+    title.pack(pady=(18, 5))
+
     subtitle = tk.Label(
         content,
         text="choose visualization mode and shape",
-        font=subtitle_font,
+        font=("Segoe UI", 13),
         bg=cultured_pearl,
         fg=meteorite
     )
 
-    title.pack(pady=(18, 4))
-    subtitle.pack(pady=(0, 26))
+    subtitle.pack(pady=(0, 18))
 
     style = ttk.Style()
     style.theme_use("clam")
 
     style.configure(
         "Custom.TCombobox",
-        fieldbackground=input_background,
-        background=input_background,
+        fieldbackground="#f3efeb",
+        background="#f3efeb",
         foreground=meteorite,
         arrowcolor=dark_ruby,
-        bordercolor=catacomb_walls,
-        lightcolor=catacomb_walls,
-        darkcolor=catacomb_walls,
-        padding=8
+        bordercolor="#d8d1cb",
+        lightcolor="#d8d1cb",
+        darkcolor="#d8d1cb",
+        padding=6
     )
 
     style.map(
         "Custom.TCombobox",
-        fieldbackground=[("readonly", input_background)],
-        selectbackground=[("readonly", input_background)],
+        fieldbackground=[("readonly", "#f3efeb")],
+        selectbackground=[("readonly", "#f3efeb")],
         selectforeground=[("readonly", meteorite)]
     )
 
-    form = tk.Frame(
+    glasses_canvas = tk.Canvas(
         content,
-        bg=cultured_pearl
+        width=660,
+        height=190,
+        bg=cultured_pearl,
+        highlightthickness=0
     )
 
-    form.pack()
+    glasses_canvas.pack(pady=(8, 8))
+
+    draw_glasses_panel(glasses_canvas, 14, 18)
 
     visualization_var = tk.StringVar(value="Animation for Matplotlib")
     shape_var = tk.StringVar(value="rubber duck")
 
-    visualization_block = tk.Frame(
-        form,
-        bg=cultured_pearl
-    )
-
-    shape_block = tk.Frame(
-        form,
-        bg=cultured_pearl
-    )
-
-    visualization_block.grid(
-        row=0,
-        column=0,
-        padx=22
-    )
-
-    shape_block.grid(
-        row=0,
-        column=1,
-        padx=22
-    )
-
-    label_color = blue_depths
-
-    visualization_label = tk.Label(
-        visualization_block,
-        text="visualization mode",
-        font=label_font,
-        bg=cultured_pearl,
-        fg=label_color,
-        anchor="center",
-        justify="center"
-    )
-
-    visualization_label.pack(pady=(0, 8))
-
     visualization_box = ttk.Combobox(
-        visualization_block,
+        glasses_canvas,
         textvariable=visualization_var,
         values=[
             "Matplotlib before after",
@@ -291,65 +453,65 @@ def choose_project_options():
             "Animation for Open3D"
         ],
         state="readonly",
-        font=("Segoe UI", 10),
-        width=26,
+        font=("Segoe UI", 11),
+        width=22,
         justify="center",
         style="Custom.TCombobox"
     )
 
-    visualization_box.pack(ipady=6)
-
-    shape_label = tk.Label(
-        shape_block,
-        text="shape",
-        font=label_font,
-        bg=cultured_pearl,
-        fg=label_color,
-        anchor="center",
-        justify="center"
-    )
-
-    shape_label.pack(pady=(0, 8))
-
     shape_box = ttk.Combobox(
-        shape_block,
+        glasses_canvas,
         textvariable=shape_var,
         values=["cube", "sphere", "rubber duck", "3d glasses"],
         state="readonly",
-        font=("Segoe UI", 10),
-        width=26,
+        font=("Segoe UI", 11),
+        width=22,
         justify="center",
         style="Custom.TCombobox"
     )
 
-    shape_box.pack(ipady=6)
+    glasses_canvas.create_window(
+        197,
+        95,
+        window=visualization_box,
+        width=185,
+        height=32
+    )
+
+    glasses_canvas.create_window(
+        471,
+        95,
+        window=shape_box,
+        width=185,
+        height=32
+    )
 
     button_canvas = tk.Canvas(
         content,
-        width=295,
-        height=64,
+        width=310,
+        height=70,
         bg=cultured_pearl,
         highlightthickness=0
     )
 
-    button_canvas.pack(pady=(32, 0))
+    button_canvas.pack(pady=(12, 10))
 
     create_rounded_rectangle(
         button_canvas,
-        5,
-        5,
-        290,
-        59,
+        6,
+        7,
+        304,
+        63,
         radius=22,
         fill=dark_ruby,
         outline=dark_ruby
     )
 
     button_canvas.create_text(
-        147,
-        32,
+        155,
+        35,
         text="start visualization",
-        font=button_font,
+        font=("Segoe UI", 15, "bold"),
         fill=cultured_pearl
     )
 
@@ -359,27 +521,28 @@ def choose_project_options():
     description = tk.Label(
         content,
         text="the program creates a transformed source cloud\nand aligns it with the target cloud using icp",
-        font=small_font,
+        font=("Segoe UI", 10),
         bg=cultured_pearl,
-        fg=soft_text,
+        fg="#a39a93",
         justify="center"
     )
 
-    description.pack(pady=(16, 0))
+    description.pack(pady=(8, 6))
 
     footer = tk.Label(
         content,
-        text="source cloud vs target cloud alignment",
-        font=small_font,
+        text="point cloud registration and visual comparison",
+        font=("Segoe UI", 10),
         bg=cultured_pearl,
-        fg="#aaa39d"
+        fg="#b8afa8"
     )
 
-    footer.pack(pady=(10, 0))
+    footer.pack()
 
     window.mainloop()
 
     return selected_options["visualization"], selected_options["shape"]
+
 
 
 def generate_selected_shape(shape_name):
