@@ -4,9 +4,9 @@
 
 This project was created by:
 
-- [@dabkowicz](https://github.com/dabkowicz)
 - [@karolinaa05](https://github.com/karolinaa05)
 - [@karolinaflorek10](https://github.com/karolinaflorek10)
+- [@dabkowicz](https://github.com/dabkowicz)
 
 # ICP Point Cloud Registration
 

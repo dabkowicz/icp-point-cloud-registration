@@ -20,7 +20,6 @@ from visualizations import plot_icp_errors
 from visualizations import animate_icp_alignment
 from visualizations import print_result_summary
 
-#all of the colors that are used
 blue_depths = "#2c356a"
 dark_ruby = "#720013"
 meteorite = "#2c2929"
@@ -326,18 +325,30 @@ def choose_project_options():
     """
 
     selected_options = {
-        "visualization": "Animation for Matplotlib",
-        "shape": "rubber duck"
+        "visualization": None,
+        "shape": None
     }
 
     def start_project():
+        try:
+            button_canvas.itemconfig(btn_text_id, text="obliczenia w tle...", fill=cultured_pearl)
+            window.update()
+        except:
+            pass
         selected_options["visualization"] = visualization_var.get()
         selected_options["shape"] = shape_var.get()
+        window.quit()
+        window.destroy()
+    def on_closing():
+        selected_options["visualization"] = None
+        selected_options["shape"] = None
+        window.quit()
         window.destroy()
 
     window = tk.Tk()
     window.title("ICP point cloud registration")
 
+    window.protocol("WM_DELETE_WINDOW", on_closing)
     window_width = 920
     window_height = 660
 
@@ -507,7 +518,7 @@ def choose_project_options():
         outline=dark_ruby
     )
 
-    button_canvas.create_text(
+    btn_text_id = button_canvas.create_text(
         155,
         35,
         text="start visualization",
@@ -517,6 +528,49 @@ def choose_project_options():
 
     button_canvas.bind("<Button-1>", lambda event: start_project())
     button_canvas.bind("<Enter>", lambda event: button_canvas.config(cursor="hand2"))
+# ====================================================
+    def start_benchmark():
+        button_canvas_plots.itemconfig(btn_plots_text_id, text="processing...", fill=cultured_pearl)
+        window.update()
+
+        selected_options["visualization"] = "Generate Benchmark Plots"
+        selected_options["shape"] = "cube"
+
+        window.quit()
+        window.destroy()
+
+    button_canvas_plots = tk.Canvas(
+        content,
+        width=310,
+        height=70,
+        bg=cultured_pearl,
+        highlightthickness=0
+    )
+    button_canvas_plots.pack(pady=(0, 10))
+
+    create_rounded_rectangle(
+        button_canvas_plots,
+        6,
+        7,
+        304,
+        63,
+        radius=22,
+        fill=blue_depths,
+        outline=blue_depths
+    )
+
+    btn_plots_text_id = button_canvas_plots.create_text(
+        155,
+        35,
+        text="generate plots",
+        font=("Segoe UI", 14, "bold"),
+        fill=cultured_pearl
+    )
+
+    button_canvas_plots.bind("<Button-1>", lambda event: start_benchmark())
+    button_canvas_plots.bind("<Enter>", lambda event: button_canvas_plots.config(cursor="hand2"))
+    # ==========================================
+
 
     description = tk.Label(
         content,
@@ -542,6 +596,8 @@ def choose_project_options():
     window.mainloop()
 
     return selected_options["visualization"], selected_options["shape"]
+
+
 
 
 
@@ -585,102 +641,115 @@ def generate_selected_shape(shape_name):
 
 
 def main():
-    visualization_mode, shape_name = choose_project_options()
+    while True:
+        visualization_mode, shape_name = choose_project_options()
 
-    target = generate_selected_shape(shape_name)
+        if visualization_mode is None:
+            print("Close main window")
+            break
+        if visualization_mode == "Generate Benchmark Plots":
+            print("\nSTARTING BENCHMARK TESTS AND PLOT GENERATION...")
+            from experiments import run_all_experiments
+            from plotResults import generate_plots
+            run_all_experiments()
+            generate_plots()
+            print("Plots generated successfully.\n")
+            continue
 
-    source, true_transformation = transform_points(
-        target,
-        angle_x=10,
-        angle_y=20,
-        angle_z=35,
-        translation=(1.0, 0.5, 0.3),
-        noise=0.01
-    )
+        target = generate_selected_shape(shape_name)
 
-    print("\nselected shape")
-    print(shape_name)
-
-    print("\nvisualization mode")
-    print(visualization_mode)
-
-    print("\ntrue transformation used to create source cloud")
-    print(true_transformation)
-
-    if visualization_mode == "Open3D before after":
-        aligned_source, open3d_transformation, fitness, rmse, open3d_time = run_open3d_icp(
-            source,
+        source, true_transformation = transform_points(
             target,
-            max_distance=1.0,
-            max_iteration=80,
-            tolerance=1e-6
+            angle_x=10,
+            angle_y=20,
+            angle_z=35,
+            translation=(1.0, 0.5, 0.3),
+            noise=0.01
         )
 
-        print_result_summary(
-            method_name="Open3D ICP",
-            transformation=open3d_transformation,
-            rmse=rmse,
-            elapsed_time=open3d_time,
-            fitness=fitness
-        )
+        print("\nselected shape")
+        print(shape_name)
 
-        visualize_before_after_open3d(
-            source_before=source,
-            target_before=target,
-            source_after=aligned_source,
-            target_after=target
-        )
+        print("\nvisualization mode")
+        print(visualization_mode)
 
-    if visualization_mode in [
-        "Matplotlib before after",
-        "Animation for Matplotlib",
-        "Animation for Open3D"
-    ]:
-        aligned_source, numpy_transformation, errors, numpy_time, history = run_numpy_icp(
-            source,
-            target,
-            max_iterations=50,
-            tolerance=1e-6,
-            save_history=True
-        )
+        print("\ntrue transformation used to create source cloud")
+        print(true_transformation)
 
-        numpy_rmse = calculate_rmse(
-            aligned_source,
-            target
-        )
+        if visualization_mode == "Open3D before after":
+            aligned_source, open3d_transformation, fitness, rmse, open3d_time = run_open3d_icp(
+                source,
+                target,
+                max_distance=1.0,
+                max_iteration=80,
+                tolerance=1e-6
+            )
 
-        print_result_summary(
-            method_name="NumPy ICP",
-            transformation=numpy_transformation,
-            rmse=numpy_rmse,
-            elapsed_time=numpy_time
-        )
+            print_result_summary(
+                method_name="Open3D ICP",
+                transformation=open3d_transformation,
+                rmse=rmse,
+                elapsed_time=open3d_time,
+                fitness=fitness
+            )
 
-        if visualization_mode == "Matplotlib before after":
-            plot_before_after_matplotlib(
+            visualize_before_after_open3d(
                 source_before=source,
                 target_before=target,
                 source_after=aligned_source,
-                target_after=target,
-                info_text=f"shape: {shape_name}     rmse: {numpy_rmse:.6f}     time: {numpy_time:.4f} s     iterations: {len(errors)}"
+                target_after=target
             )
 
-            plot_icp_errors(errors)
-
-        if visualization_mode == "Animation for Matplotlib":
-            animate_icp_alignment(
-                target=target,
-                history=history,
-                errors=errors,
-                interval=450
+        if visualization_mode in [
+            "Matplotlib before after",
+            "Animation for Matplotlib",
+            "Animation for Open3D"
+        ]:
+            aligned_source, numpy_transformation, errors, numpy_time, history = run_numpy_icp(
+                source,
+                target,
+                max_iterations=50,
+                tolerance=1e-6,
+                save_history=True
             )
 
-        if visualization_mode == "Animation for Open3D":
-            animate_icp_open3d(
-                target=target,
-                history=history,
-                interval=0.08
+            numpy_rmse = calculate_rmse(
+                aligned_source,
+                target
             )
+
+            print_result_summary(
+                method_name="NumPy ICP",
+                transformation=numpy_transformation,
+                rmse=numpy_rmse,
+                elapsed_time=numpy_time
+            )
+
+            if visualization_mode == "Matplotlib before after":
+                plot_before_after_matplotlib(
+                    source_before=source,
+                    target_before=target,
+                    source_after=aligned_source,
+                    target_after=target,
+                    info_text=f"shape: {shape_name}     rmse: {numpy_rmse:.6f}     time: {numpy_time:.4f} s     iterations: {len(errors)}"
+                )
+
+                plot_icp_errors(errors)
+
+            if visualization_mode == "Animation for Matplotlib":
+                animate_icp_alignment(
+                    target=target,
+                    history=history,
+                    errors=errors,
+                    interval=450
+                )
+
+            if visualization_mode == "Animation for Open3D":
+                animate_icp_open3d(
+                    target=target,
+                    history=history,
+                    interval=0.08
+                )
 
 
 if __name__ == "__main__":
