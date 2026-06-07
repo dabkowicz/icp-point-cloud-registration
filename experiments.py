@@ -62,7 +62,7 @@ def run_all_experiments():
                     numpy_time = time.time() - start_time
                     numpy_rmse = calculate_rmse(aligned_source_np, target_cloud)
 
-                    writer.writerow([shape_name, num_points, noise, 'Custom_NumPy', f"{numpy_rmse:.6f}", "N/A",
+                    writer.writerow([shape_name, num_points, noise, 'Custom', f"{numpy_rmse:.6f}", "N/A",
                                      f"{numpy_time:.4f}"])
 
                     start_time = time.time()
